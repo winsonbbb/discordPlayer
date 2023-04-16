@@ -158,7 +158,7 @@ class Music {
         const guildID = interaction.guildId;
 
         // 如果隊列中有歌曲則播放音樂
-        if (this.queue[guildID].length > 0) {
+        if (this.queue[guildID] !== undefined && this.queue[guildID].length > 0) {
             this.playMusic(interaction, this.queue[guildID][0], false);
         } else if (this.recList[guildID] !== undefined && this.recList[guildID] !== "") {
             this.playRecMusic(interaction, this.recList[guildID]);
