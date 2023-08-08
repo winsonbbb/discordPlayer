@@ -96,7 +96,7 @@ class Music {
                     url: searched[0].url
                 });
 
-                this.recList[guildID] = this.getNonPlayedUrl(guildID,res.related_videos);
+                this.recList[guildID] = await this.getNonPlayedUrl(guildID,res.related_videos);
             } else {
 
                 // 檢查是否為播放清單
@@ -132,7 +132,7 @@ class Music {
                         name: musicName,
                         url: musicURL
                     });
-                    this.recList[guildID] = this.getNonPlayedUrl(guildID,res.related_videos);
+                    this.recList[guildID] = await this.getNonPlayedUrl(guildID,res.related_videos);
                 }
             }
 
@@ -168,12 +168,21 @@ class Music {
 
     }
 
-    getNonPlayedUrl(guildID,related_videos) {
+    async getNonPlayedUrl(guildID,related_videos) {
+
         for (const url of related_videos) {
-            if(!this.playedUrl[guildID].includes(url)){
-                return url;
-            }
+        const newRes = await playDl.video_info(url);
+        console.log(newRes.video_details.title);
+        if(this.playedUrl[guildID].includes(url)){
+            continue;
         }
+        if(newRes.video_details.durationInSec>600){
+            continue;
+        }
+        return url;
+
+        }
+        //default
         return related_videos[0];
     }
 
@@ -240,7 +249,7 @@ class Music {
             const res = await playDl.video_basic_info(musicUrl.trim());
             const musicName = res.video_details.title;
             this.playedUrl[guildID].push(musicUrl);
-            this.recList[guildID] = this.getNonPlayedUrl(guildID,res.related_videos);
+            this.recList[guildID] = await this.getNonPlayedUrl(guildID,res.related_videos);
             // 提示播放音樂
             const content = `🎵　播放音樂：${musicName}`;
             interaction.channel.send(content);
@@ -376,6 +385,12 @@ class Music {
 
                 // 改變 isPlaying 狀態為 false
                 this.isPlaying[guildID] = false;
+            }
+            
+            if (this.playedUrl.hasOwnProperty(guildID)) {
+
+                // 清空播放列表
+                delete this.playedUrl[guildID];
             }
 
             // 離開頻道
